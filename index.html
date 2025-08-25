@@ -1,191 +1,188 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>피아노 학원 시간표 (월~금)</title>
-<style>
-  :root{
-    --ok:#d7f9d7;
-    --warn:#ffd9d9;
-    --bg:#f6f7fb;
-    --card:#ffffff;
-    --text:#222;
-    --muted:#666;
-    --accent:#4caf50;
-    --line:#e7e7ef;
-    --btn:#efefef;
-  }
-  body{margin:0;background:var(--bg);color:var(--text);font-family:sans-serif}
-  header{position:sticky;top:0;background:var(--card);padding:12px;display:flex;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);z-index:10}
-  h1{font-size:18px;margin:0}
-  .tabs{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  .tab{padding:8px 14px;cursor:pointer;background:#fafafa;border-right:1px solid var(--line);font-weight:600}
-  .tab:last-child{border-right:none}
-  .tab.active{background:var(--accent);color:#fff}
-  .btn{padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--btn);cursor:pointer;font-weight:600}
-  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-  main{padding:12px;max-width:900px;margin:auto}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px;margin-bottom:20px}
-  h2{margin:4px 0;font-size:16px}
-  table{width:100%;border-collapse:separate;border-spacing:0 6px}
-  th{font-size:12px;color:var(--muted);padding:4px}
-  td{padding:6px;text-align:center}
-  tr{border-radius:12px;overflow:hidden}
-  .count{font-weight:700}
-  .ctrl{padding:2px 8px;margin:0 2px;border-radius:8px;border:1px solid var(--line);background:#f3f3f7;font-weight:800;cursor:pointer}
-  .hourbadge{font-size:12px;padding:2px 6px;border-radius:999px;border:1px solid var(--line);background:#fff;display:inline-block}
-  .danger{color:#b00020}
-  .success{color:#1a7f37}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>피아노 학원 시간표 (월~금)</title>
+  <style>
+    :root{
+      --ok:#d7f9d7; --warn:#ffd9d9; --bg:#f6f7fb; --card:#ffffff;
+      --text:#222; --muted:#666; --accent:#4caf50; --line:#e7e7ef;
+      --btn:#efefef;
+    }
+    body{margin:0;background:var(--bg);color:var(--text);font-family:sans-serif}
+    header{position:sticky;top:0;background:var(--card);padding:12px;display:flex;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);z-index:10}
+    h1{font-size:18px;margin:0}
+    .tabs{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+    .tab{padding:8px 14px;cursor:pointer;background:#fafafa;border-right:1px solid var(--line);font-weight:600}
+    .tab:last-child{border-right:none}
+    .tab.active{background:var(--accent);color:#fff}
+    .btn{padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--btn);cursor:pointer;font-weight:600}
+    .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+    main{padding:12px;max-width:900px;margin:auto}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px;margin-bottom:20px}
+    h2{margin:4px 0;font-size:16px}
+    table{width:100%;border-collapse:separate;border-spacing:0 6px}
+    th{font-size:12px;color:var(--muted);padding:4px}
+    td{padding:6px;text-align:center; vertical-align: middle;}
+    tr{border-radius:12px;overflow:hidden}
+    .count{font-weight:700}
+    .ctrl{padding:2px 8px;margin:0 2px;border-radius:8px;border:1px solid var(--line);background:#f3f3f7;font-weight:800;cursor:pointer}
+    .badges{display:flex; gap:6px; justify-content:center; flex-wrap:wrap;}
+    .badge{font-size:12px;padding:2px 6px;border-radius:999px;border:1px solid var(--line);background:#fff;display:inline-block}
+    .danger{color:#b00020; border-color:#f1a7a7}
+    .success{color:#1a7f37}
+  </style>
 </head>
 <body>
-<header>
-  <h1>피아노 학원 시간표 (월~금)</h1>
-  <div class="tabs">
-    <div class="tab active" data-hall="main">본관</div>
-    <div class="tab" data-hall="sub">별관</div>
-  </div>
-  <button id="editBtn" class="btn">편집 잠금</button>
-</header>
+  <header>
+    <h1>피아노 학원 시간표 (월~금)</h1>
+    <div class="tabs">
+      <div class="tab active" data-hall="main">본관</div>
+      <div class="tab" data-hall="sub">별관</div>
+    </div>
+    <button id="editBtn" class="btn">편집 잠금</button>
+  </header>
 
-<main id="schedule"></main>
+  <main id="schedule"></main>
 
-<script>
-/** 설정 **/
-const TIMES = ["13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30"];
-const DAYS = [
-  {key:"mon",label:"월요일"},
-  {key:"tue",label:"화요일"},
-  {key:"wed",label:"수요일"},
-  {key:"thu",label:"목요일"},
-  {key:"fri",label:"금요일"}
-];
-const SLOT_MAX = 8;
-const HOUR_MAX = 11;
-const PAIRS = [[0,1],[2,3],[4,5],[6,7],[8,9]]; // 마지막 18:30은 단독
-const DEFAULT_PIN = "0000";
+  <script>
+    /** 설정 **/
+    const TIMES = ["13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30"];
+    const DAYS = [
+      {key:"mon",label:"월요일"},
+      {key:"tue",label:"화요일"},
+      {key:"wed",label:"수요일"},
+      {key:"thu",label:"목요일"},
+      {key:"fri",label:"금요일"}
+    ];
+    const SLOT_MAX = 8;   // 한 타임 최대
+    const HOUR_MAX = 11;  // 1시간 최대
+    const DEFAULT_PIN = "0000";
 
-/** 상태 **/
-let state = loadState();
-let currentHall = state.currentHall || "main";
-let editMode = false;
+    /** 상태 **/
+    let state = loadState();
+    let currentHall = state.currentHall || "main";
+    let editMode = false;
 
-/** 유틸 **/
-function loadState(){
-  try{
-    const raw = localStorage.getItem("piano_schedule_week");
-    if(!raw){
-      return {currentHall:"main", data:{}};
+    /** 유틸 **/
+    function loadState(){
+      try{
+        const raw = localStorage.getItem("piano_schedule_week");
+        if(!raw){ return {currentHall:"main", data:{}}; }
+        return JSON.parse(raw);
+      }catch(e){ return {currentHall:"main", data:{}}; }
     }
-    return JSON.parse(raw);
-  }catch(e){
-    return {currentHall:"main", data:{}};
-  }
-}
-function saveState(){
-  localStorage.setItem("piano_schedule_week", JSON.stringify(state));
-}
-function getDayData(dayKey){
-  if(!state.data[dayKey]){
-    state.data[dayKey] = {main:Array(TIMES.length).fill(0), sub:Array(TIMES.length).fill(0)};
-  }
-  return state.data[dayKey];
-}
-function hourSum(arr, idx){
-  for(const [a,b] of PAIRS){
-    if(idx===a || idx===b) return (arr[a]||0)+(arr[b]||0);
-  }
-  return arr[idx]||0;
-}
+    function saveState(){
+      localStorage.setItem("piano_schedule_week", JSON.stringify(state));
+    }
+    function getDayData(dayKey){
+      if(!state.data[dayKey]){
+        state.data[dayKey] = {main:Array(TIMES.length).fill(0), sub:Array(TIMES.length).fill(0)};
+      }
+      return state.data[dayKey];
+    }
 
-/** 렌더 **/
-function render(){
-  const container = document.getElementById("schedule");
-  container.innerHTML = "";
+    // ✅ “이전+현재”, “현재+다음” 두 합계를 모두 계산
+    function hourSums(arr, idx){
+      const prev = idx > 0 ? (arr[idx-1]||0) + (arr[idx]||0) : (arr[idx]||0);
+      const next = idx < arr.length-1 ? (arr[idx]||0) + (arr[idx+1]||0) : (arr[idx]||0);
+      return { prev, next, max: Math.max(prev, next) };
+    }
 
-  DAYS.forEach(d=>{
-    const dayData = getDayData(d.key);
-    const arr = dayData[currentHall];
+    /** 렌더 **/
+    function render(){
+      const container = document.getElementById("schedule");
+      container.innerHTML = "";
+      DAYS.forEach(d=>{
+        const dayData = getDayData(d.key);
+        const arr = dayData[currentHall];
 
-    const section = document.createElement("section");
-    section.className="card";
+        const section = document.createElement("section");
+        section.className="card";
 
-    const title = document.createElement("h2");
-    title.textContent = d.label;
-    section.appendChild(title);
+        const title = document.createElement("h2");
+        title.textContent = d.label;
+        section.appendChild(title);
 
-    const table = document.createElement("table");
-    const thead = `<thead><tr><th>시간</th><th>인원</th><th>조작</th><th>1시간 합계</th></tr></thead>`;
-    let rows = "";
-    TIMES.forEach((t,i)=>{
-      const count = arr[i]||0;
-      const sum = hourSum(arr,i);
-      const isWarn = (count > SLOT_MAX) || (sum > HOUR_MAX);
-      rows += `
-        <tr style="background:${isWarn?'var(--warn)':'var(--ok)'}">
-          <td>${t}</td>
-          <td class="count">${count}</td>
-          <td>
-            ${editMode?`
-            <button class="ctrl" onclick="change('${d.key}',${i},-1)">−</button>
-            <button class="ctrl" onclick="change('${d.key}',${i},1)">+</button>
-            `:"(보기)"}
-          </td>
-          <td><span class="hourbadge ${sum>HOUR_MAX?'danger':'success'}">${sum}/${HOUR_MAX}</span></td>
-        </tr>`;
+        const table = document.createElement("table");
+        const thead = "<thead><tr><th>시간</th><th>인원</th><th>조작</th><th>1시간 합계(겹침 고려)</th></tr></thead>";
+        let rows = "";
+
+        TIMES.forEach((t,i)=>{
+          const count = arr[i]||0;
+          const {prev, next, max} = hourSums(arr, i);
+          const isWarn = (count > SLOT_MAX) || (max > HOUR_MAX);
+
+          rows += `
+          <tr style="background:${isWarn?'var(--warn)':'var(--ok)'}">
+            <td>${t}</td>
+            <td class="count">${count}</td>
+            <td>
+              ${editMode
+                ? `<button class="ctrl" onclick="change('${d.key}',${i},-1)">−</button>
+                   <button class="ctrl" onclick="change('${d.key}',${i},1)">+</button>`
+                : "(보기)"}
+            </td>
+            <td>
+              <div class="badges">
+                <span class="badge ${prev>HOUR_MAX?'danger':'success'}">이전+현재: ${prev}/${HOUR_MAX}</span>
+                <span class="badge ${next>HOUR_MAX?'danger':'success'}">현재+다음: ${next}/${HOUR_MAX}</span>
+              </div>
+            </td>
+          </tr>`;
+        });
+
+        table.innerHTML = thead + "<tbody>"+rows+"</tbody>";
+        section.appendChild(table);
+        container.appendChild(section);
+      });
+
+      // 탭 상태
+      document.querySelectorAll(".tab").forEach(tab=>{
+        tab.classList.toggle("active",tab.dataset.hall===currentHall);
+      });
+
+      // 버튼 상태
+      document.getElementById("editBtn").textContent = editMode?"편집 중":"편집 잠금";
+      document.getElementById("editBtn").classList.toggle("primary",editMode);
+
+      saveState();
+    }
+
+    function change(dayKey,idx,diff){
+      if(!editMode) return;
+      const arr = getDayData(dayKey)[currentHall];
+      arr[idx] = Math.max(0,(arr[idx]||0)+diff);
+      render();
+    }
+
+    /** 이벤트 **/
+    document.querySelectorAll(".tab").forEach(tab=>{
+      tab.addEventListener("click",()=>{
+        currentHall = tab.dataset.hall;
+        state.currentHall = currentHall;
+        render();
+      });
     });
-    table.innerHTML = thead + "<tbody>"+rows+"</tbody>";
-    section.appendChild(table);
+    document.getElementById("editBtn").addEventListener("click",()=>{
+      if(editMode){
+        editMode=false;
+        alert("편집 잠금됨 (보기 전용)");
+      }else{
+        const pin = prompt("편집 PIN (기본 0000):");
+        if(pin===DEFAULT_PIN){
+          editMode=true;
+          alert("편집 모드 ON");
+        }else{
+          alert("PIN 오류");
+        }
+      }
+      render();
+    });
 
-    container.appendChild(section);
-  });
-
-  // 탭 상태
-  document.querySelectorAll(".tab").forEach(tab=>{
-    tab.classList.toggle("active",tab.dataset.hall===currentHall);
-  });
-
-  // 버튼 상태
-  document.getElementById("editBtn").textContent = editMode?"편집 중":"편집 잠금";
-  document.getElementById("editBtn").classList.toggle("primary",editMode);
-
-  saveState();
-}
-
-function change(dayKey,idx,diff){
-  if(!editMode) return;
-  const arr = getDayData(dayKey)[currentHall];
-  arr[idx] = Math.max(0,(arr[idx]||0)+diff);
-  render();
-}
-
-/** 이벤트 **/
-document.querySelectorAll(".tab").forEach(tab=>{
-  tab.addEventListener("click",()=>{
-    currentHall = tab.dataset.hall;
-    state.currentHall = currentHall;
+    /** init **/
     render();
-  });
-});
-document.getElementById("editBtn").addEventListener("click",()=>{
-  if(editMode){
-    editMode=false;
-    alert("편집 잠금됨 (보기 전용)");
-  }else{
-    const pin = prompt("편집 PIN (기본 0000):");
-    if(pin===DEFAULT_PIN){
-      editMode=true;
-      alert("편집 모드 ON");
-    }else{
-      alert("PIN 오류");
-    }
-  }
-  render();
-});
-
-/** init **/
-render();
-</script>
+  </script>
 </body>
 </html>
