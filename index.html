@@ -5,38 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>피아노 학원 시간표 (월~금)</title>
 <style>
-  :root{
-    --ok:#d7f9d7;
-    --warn:#ffd9d9;
-    --bg:#f6f7fb;
-    --card:#ffffff;
-    --text:#222;
-    --muted:#666;
-    --accent:#4caf50;
-    --line:#e7e7ef;
-    --btn:#efefef;
-  }
-  body{margin:0;background:var(--bg);color:var(--text);font-family:sans-serif}
-  header{position:sticky;top:0;background:var(--card);padding:12px;display:flex;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);z-index:10}
-  h1{font-size:18px;margin:0}
-  .tabs{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  .tab{padding:8px 14px;cursor:pointer;background:#fafafa;border-right:1px solid var(--line);font-weight:600}
-  .tab:last-child{border-right:none}
-  .tab.active{background:var(--accent);color:#fff}
-  .btn{padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--btn);cursor:pointer;font-weight:600}
-  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-  main{padding:12px;max-width:900px;margin:auto}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px;margin-bottom:20px}
-  h2{margin:4px 0;font-size:16px}
-  table{width:100%;border-collapse:separate;border-spacing:0 6px}
-  th{font-size:12px;color:var(--muted);padding:4px}
-  td{padding:6px;text-align:center}
-  tr{border-radius:12px;overflow:hidden}
-  .count{font-weight:700}
-  .ctrl{padding:2px 8px;margin:0 2px;border-radius:8px;border:1px solid var(--line);background:#f3f3f7;font-weight:800;cursor:pointer}
-  .hourbadge{font-size:12px;padding:2px 6px;border-radius:999px;border:1px solid var(--line);background:#fff;display:inline-block}
-  .danger{color:#b00020}
-  .success{color:#1a7f37}
+:root{
+  --ok:#d7f9d7; --warn:#ffd9d9; --bg:#f6f7fb; --card:#ffffff;
+  --text:#222; --muted:#666; --accent:#4caf50; --line:#e7e7ef;
+  --btn:#efefef;
+}
+body{margin:0;background:var(--bg);color:var(--text);font-family:sans-serif}
+header{position:sticky;top:0;background:var(--card);padding:12px;display:flex;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);z-index:10}
+h1{font-size:18px;margin:0}
+.tabs{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tab{padding:8px 14px;cursor:pointer;background:#fafafa;border-right:1px solid var(--line);font-weight:600}
+.tab:last-child{border-right:none}
+.tab.active{background:var(--accent);color:#fff}
+.btn{padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--btn);cursor:pointer;font-weight:600}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+main{padding:12px;max-width:900px;margin:auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px;margin-bottom:20px}
+h2{margin:4px 0;font-size:16px}
+table{width:100%;border-collapse:separate;border-spacing:0 6px}
+th{font-size:12px;color:var(--muted);padding:4px}
+td{padding:6px;text-align:center; vertical-align: middle;}
+tr{border-radius:12px;overflow:hidden}
+.count{font-weight:700}
+.ctrl{padding:2px 8px;margin:0 2px;border-radius:8px;border:1px solid var(--line);background:#f3f3f7;font-weight:800;cursor:pointer}
+.badges{display:flex; gap:6px; justify-content:center; flex-wrap:wrap;}
+.badge{font-size:12px;padding:2px 6px;border-radius:999px;border:1px solid var(--line);background:#fff;display:inline-block}
+.danger{color:#b00020; border-color:#f1a7a7}
+.success{color:#1a7f37}
 </style>
 </head>
 <body>
@@ -61,9 +56,8 @@ const DAYS = [
   {key:"thu",label:"목요일"},
   {key:"fri",label:"금요일"}
 ];
-const SLOT_MAX = 7;   // 한 타임 최대 인원
-const HOUR_MAX = 11;  // 한 시간 합계 최대 인원
-const PAIRS = [[0,1],[2,3],[4,5],[6,7],[8,9]]; // 마지막 18:30은 단독
+const SLOT_MAX = 7;
+const HOUR_MAX = 11;
 const DEFAULT_PIN = "0000";
 
 /** 상태 **/
@@ -75,9 +69,7 @@ let editMode = false;
 function loadState(){
   try{
     const raw = localStorage.getItem("piano_schedule_week");
-    if(!raw){
-      return {currentHall:"main", data:{}};
-    }
+    if(!raw) return {currentHall:"main", data:{}};
     return JSON.parse(raw);
   }catch(e){
     return {currentHall:"main", data:{}};
@@ -92,11 +84,12 @@ function getDayData(dayKey){
   }
   return state.data[dayKey];
 }
-function hourSum(arr, idx){
-  for(const [a,b] of PAIRS){
-    if(idx===a || idx===b) return (arr[a]||0)+(arr[b]||0);
-  }
-  return arr[idx]||0;
+
+// 이전+현재, 현재+다음 합계 계산
+function hourSums(arr, idx){
+  const prev = idx > 0 ? (arr[idx-1]||0) + (arr[idx]||0) : (arr[idx]||0);
+  const next = idx < arr.length-1 ? (arr[idx]||0) + (arr[idx+1]||0) : (arr[idx]||0);
+  return { prev, next, max: Math.max(prev, next) };
 }
 
 /** 렌더 **/
@@ -116,29 +109,35 @@ function render(){
     section.appendChild(title);
 
     const table = document.createElement("table");
-    const thead = `<thead><tr><th>시간</th><th>인원</th><th>조작</th><th>1시간 합계</th></tr></thead>`;
+    const thead = "<thead><tr><th>시간</th><th>인원</th><th>조작</th><th>1시간 합계(겹침)</th></tr></thead>";
     let rows = "";
+
     TIMES.forEach((t,i)=>{
       const count = arr[i]||0;
-      const sum = hourSum(arr,i);
-      // ✅ 수정: count >= SLOT_MAX, sum >= HOUR_MAX
-      const isWarn = (count >= SLOT_MAX) || (sum >= HOUR_MAX);
+      const {prev, next, max} = hourSums(arr, i);
+      const isWarn = (count >= SLOT_MAX) || (max >= HOUR_MAX);
+
       rows += `
-        <tr style="background:${isWarn?'var(--warn)':'var(--ok)'}">
-          <td>${t}</td>
-          <td class="count">${count}</td>
-          <td>
-            ${editMode?`
-            <button class="ctrl" onclick="change('${d.key}',${i},-1)">−</button>
-            <button class="ctrl" onclick="change('${d.key}',${i},1)">+</button>
-            `:"(보기)"}
-          </td>
-          <td><span class="hourbadge ${sum>=HOUR_MAX?'danger':'success'}">${sum}/${HOUR_MAX}</span></td>
-        </tr>`;
+      <tr style="background:${isWarn?'var(--warn)':'var(--ok)'}">
+        <td>${t}</td>
+        <td class="count">${count}</td>
+        <td>
+          ${editMode
+            ? `<button class="ctrl" onclick="change('${d.key}',${i},-1)">−</button>
+               <button class="ctrl" onclick="change('${d.key}',${i},1)">+</button>`
+            : "(보기)"}
+        </td>
+        <td>
+          <div class="badges">
+            <span class="badge ${prev>=HOUR_MAX?'danger':'success'}">이전+현재: ${prev}/${HOUR_MAX}</span>
+            <span class="badge ${next>=HOUR_MAX?'danger':'success'}">현재+다음: ${next}/${HOUR_MAX}</span>
+          </div>
+        </td>
+      </tr>`;
     });
+
     table.innerHTML = thead + "<tbody>"+rows+"</tbody>";
     section.appendChild(table);
-
     container.appendChild(section);
   });
 
